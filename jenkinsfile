@@ -1,5 +1,9 @@
 pipeline{
     agent any
+    environment {
+        USER_NAME = "joe"
+        USER_ID = 42
+    }
     stages{
         stage('print environment variables'){
             steps{
@@ -10,6 +14,48 @@ pipeline{
             steps{
                 echo "BUILD_NUMBER = ${env.BUILD_NUMBER}"
                 sh 'echo build_bumber = $BUILD_NUMBER'
+            }
+        }
+        stage('display userdefied variables'){
+            environment{
+                USER_PATH="/home/joe"
+                USER_ID= 55
+            }
+            steps{
+                echo "current uesr name is ${env.USER_NAME}"
+                echo "current user id is ${env.USER_ID}"
+                
+                withEnv(["USER_PWD=secret","USER_IS_ADMIN=false", "USER_NAME=Adam-overrided"]){
+                    echo "current user password is ${env.USER_PWD}"
+                    sh 'echo is $USER_NAME an admin?  $USER_IS_ADMIN'
+                    echo "the overrided name is ${env.USER_NAME}"
+                }
+                
+                script {
+                    env.USER_GROUP = "user"
+                    env.USER_NAME="Adam-overrided"
+                    env.TRIGGER_NEXT=true
+                }
+                echo "user group is ${env.USER_GROUP}"
+                echo "the user name is not overrided from script block ${env.USER_NAME}"
+            }
+        }
+        stage('testing boolean values'){
+            when {
+                expression {
+                    env.TRIGGER_NEXT.toBoolean() == true
+                }
+            }
+            steps{
+                echo "boolean worked"
+            }
+        }
+        stage ('capture output from other stesps'){
+            environment{
+                COUNT_FILES=sh(script: "ls -la /tmp | tail -n +4 | wc -l", returnStdout: true).trim()
+            }
+            steps{
+                echo "there are ${env.COUNT_FILES} files exist in /tmp folder"
             }
         }
     }
