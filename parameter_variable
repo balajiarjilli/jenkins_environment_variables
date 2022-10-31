@@ -1,0 +1,17 @@
+pipeline{
+    agent any
+    parameters {
+        string description: 'name of the default cluster', name: 'cluster_name'
+        booleanParam description: 'is the user admin?', name: 'is_admin'
+        choice choices: ['blue', 'green', 'yellow', 'white', 'black'], description: 'choose the colour', name: 'colours'
+    }
+    stages{
+        stage('print variables'){
+            steps{
+                echo "${cluster_name}"
+                echo "${is_admin}"
+                echo "${colours}"
+            }
+        }
+    }
+}
